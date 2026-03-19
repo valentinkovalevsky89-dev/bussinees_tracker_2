@@ -195,10 +195,7 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
       <!-- CLOSE ROUND -->
       <div class="card senior-card">
         <div class="card-title" style="color:var(--gold);">⏹ Управление раундом</div>
-        <div class="round-status" id="round-status">
-          <span><span class="round-dot closed" id="round-dot"></span><span id="round-label">Нет активного раунда</span></span>
-          <span id="round-time" style="color:var(--muted);font-size:10px;"></span>
-        </div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:14px;">Статус раунда смотри в Google Sheet → лист «Раунды»</p>
         <button class="btn btn-r" id="btn-close-round">⏹ Закрыть раунд</button>
       </div>
 
@@ -275,7 +272,6 @@ if (!AGENTS_LIST.length || !GS_URL) {
     badge.textContent = '★ Старший';
     badge.className = 'role-badge role-senior';
     document.getElementById('senior-panel').classList.remove('hidden');
-    loadRoundStatus();
   } else {
     badge.textContent = AGENTS_LIST.length === 1 ? AGENTS_LIST[0] : 'Агент';
     badge.className = 'role-badge role-agent';
@@ -484,46 +480,15 @@ if (document.getElementById('btn-cf-in')) {
 // ================================================================
 // SENIOR: ROUND STATUS + CLOSE
 // ================================================================
-function loadRoundStatus() {
-  var url = GS_URL + '?action=roundStatus';
-  jsonpCall(url, function(err, data) {
-    if (err || !data.ok) return;
-    updateRoundUI(data.open, data.openedAt);
-  });
-}
-
-function updateRoundUI(isOpen, openedAt) {
-  var dot   = document.getElementById('round-dot');
-  var label = document.getElementById('round-label');
-  var time  = document.getElementById('round-time');
-  var btn   = document.getElementById('btn-close-round');
-
-  if (isOpen) {
-    dot.className   = 'round-dot open';
-    label.textContent = 'Раунд открыт';
-    time.textContent  = openedAt || '';
-    btn.disabled = false;
-    btn.textContent = '⏹ Закрыть раунд';
-  } else {
-    dot.className   = 'round-dot closed';
-    label.textContent = 'Нет активного раунда';
-    time.textContent  = '';
-    btn.disabled = true;
-    btn.textContent = '⏹ Раунд закрыт';
-  }
-}
-
 if (document.getElementById('btn-close-round')) {
   document.getElementById('btn-close-round').addEventListener('click', function() {
-    if (!confirm('Закрыть раунд и зафиксировать прибыль?')) return;
+    if (!confirm('Закрыть раунд?')) return;
     var btn = this;
-    btn.innerHTML = '<span class="spin">⟳</span> Закрываем...';
+    btn.innerHTML = '<span class="spin">⟳</span>';
     btn.disabled = true;
-
     var url = GS_URL + '?action=closeRound&time=' + encodeURIComponent(nowTime()) + '&date=' + encodeURIComponent(today());
-    updateRoundUI(false, '');
-    showToast('✓ Раунд закрыт');
-    sendData(url);
+    sendData(url, '✓ Раунд закрыт');
+    setTimeout(function(){ btn.innerHTML = '⏹ Закрыть раунд'; btn.disabled = false; }, 2000);
   });
 }
 
