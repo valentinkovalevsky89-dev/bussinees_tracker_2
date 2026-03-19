@@ -398,7 +398,7 @@ document.getElementById('confirm-modal').addEventListener('click', function(e) {
 });
 
 // ================================================================
-// CONFIRM — send to Google Sheets via Apps Script
+// CONFIRM — send to Google Sheets via JSONP
 // ================================================================
 document.getElementById('btn-confirm').addEventListener('click', function() {
   if (!pendingDeal) return;
@@ -407,8 +407,34 @@ document.getElementById('btn-confirm').addEventListener('click', function() {
   btn.disabled = true;
 
   var deal = pendingDeal;
-  var url = GS_URL
+  var cbName = 'agentCallback_' + Date.now();
+  var script = document.createElement('script');
+
+  window[cbName] = function(data) {
+    delete window[cbName];
+    document.body.removeChild(script);
+    btn.innerHTML = '✓ Отправить'; btn.disabled = false;
+    if (!data.ok) { showToast('Ошибка: ' + (data.error || 'неизвестная'), true); return; }
+    document.getElementById('give-amt').value = '';
+    document.getElementById('get-amt').value  = '';
+    document.getElementById('note').value     = '';
+    document.getElementById('spread-hint').textContent = 'Введи суммы и курс';
+    document.getElementById('spread-hint').className   = 'spread-hint neutral';
+    document.getElementById('confirm-modal').classList.add('hidden');
+    pendingDeal = null;
+    showToast('✓ Сделка отправлена!');
+  };
+
+  script.onerror = function() {
+    delete window[cbName];
+    document.body.removeChild(script);
+    btn.innerHTML = '✓ Отправить'; btn.disabled = false;
+    showToast('Ошибка отправки', true);
+  };
+
+  script.src = GS_URL
     + '?action=submit'
+    + '&callback='    + cbName
     + '&agent='       + encodeURIComponent(deal.agent)
     + '&giveCur='     + encodeURIComponent(deal.giveCur)
     + '&giveAmount='  + encodeURIComponent(deal.giveAmount)
@@ -419,25 +445,7 @@ document.getElementById('btn-confirm').addEventListener('click', function() {
     + '&date='        + encodeURIComponent(deal.date)
     + '&time='        + encodeURIComponent(deal.time);
 
-  fetch(url)
-    .then(function(r){ return r.json(); })
-    .then(function(data) {
-      if (!data.ok) throw new Error(data.error || 'Ошибка сервера');
-      // Reset form
-      document.getElementById('give-amt').value = '';
-      document.getElementById('get-amt').value  = '';
-      document.getElementById('note').value     = '';
-      document.getElementById('spread-hint').textContent = 'Введи суммы и курс';
-      document.getElementById('spread-hint').className   = 'spread-hint neutral';
-      document.getElementById('confirm-modal').classList.add('hidden');
-      pendingDeal = null;
-      btn.innerHTML = '✓ Отправить'; btn.disabled = false;
-      showToast('✓ Сделка отправлена!');
-    })
-    .catch(function(e) {
-      btn.innerHTML = '✓ Отправить'; btn.disabled = false;
-      showToast('Ошибка: ' + e.message, true);
-    });
+  document.body.appendChild(script);
 });
 
 // ================================================================
