@@ -934,7 +934,7 @@ function autoOpenRound(triggerDeal) {
   var snapshot = {};
   CURS.forEach(function(c){ snapshot[c] = exState.balances[c] || 0; });
 
-  var rates = cachedRates || {eur:1.08, huf:0.0026, usd:1, czk:0.043};
+  var rates = (typeof cachedRates !== 'undefined' && cachedRates) || {eur:1.08, huf:0.0026, usd:1, czk:0.043};
   var gc = triggerDeal.giveCur, rc = triggerDeal.getCur, rt = triggerDeal.rate;
   if (!rates[gc] && (rc === 'usdt' || rc === 'usd')) rates[gc] = rt;
   else if (!rates[rc] && (gc === 'usdt' || gc === 'usd')) rates[rc] = 1 / rt;
