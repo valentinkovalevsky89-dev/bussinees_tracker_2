@@ -930,6 +930,39 @@ function renderRounds() {
 // ================================================================
 // ROUNDS v2 — ACTIONS
 // ================================================================
+function autoOpenRound(triggerDeal) {
+  var snapshot = {};
+  CURS.forEach(function(c){ snapshot[c] = exState.balances[c] || 0; });
+
+  var rates = cachedRates || {eur:1.08, huf:0.0026, usd:1, czk:0.043};
+  var gc = triggerDeal.giveCur, rc = triggerDeal.getCur, rt = triggerDeal.rate;
+  if (!rates[gc] && (rc === 'usdt' || rc === 'usd')) rates[gc] = rt;
+  else if (!rates[rc] && (gc === 'usdt' || gc === 'usd')) rates[rc] = 1 / rt;
+
+  var snapUsdt = portfolioToUsdt(snapshot, rates);
+  var name = 'День ' + today();
+
+  var round = {
+    id: triggerDeal.id - 1,
+    name: name,
+    openedDate: today(),
+    openedTime: now(),
+    snapshot: snapshot,
+    snapshotUsdt: snapUsdt,
+    rates: rates,
+    status: 'open',
+    autoOpened: true
+  };
+  exState.rounds2.push(round);
+  exState.openRound2 = round.id;
+
+  fetchAllRatesUsdt().then(function(realRates) {
+    round.rates = realRates;
+    round.snapshotUsdt = portfolioToUsdt(snapshot, realRates);
+    save();
+  }).catch(function(){});
+}
+
 function openRound2() {
   if (exState.openRound2) { alert('Сначала закрой текущий раунд.'); return; }
   var nameEl = document.getElementById('round-name-input');
@@ -1284,6 +1317,12 @@ function addExDeal() {
     rate:rt, profit:profit, pct:pct, agent:agent, client:client, note:note,
     date:today(), time:now()
   };
+
+  // Auto-open round on first deal if no round is open
+  if (!exState.openRound2) {
+    autoOpenRound(deal);
+  }
+
   exState.deals.push(deal);
 
   // rebuildRounds recalculates everything: balances, profits, agentProfit, rounds
