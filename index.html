@@ -449,14 +449,14 @@ function populateAgentSelect() {
 // ================================================================
 function freshExState() {
   return {
-    capital:     {eur:3000,huf:2000000,usdt:3000,usd:0,czk:0},
+    capital:     {eur:0,huf:0,usdt:0,usd:0,czk:0},
     balances:    {eur:0,huf:0,usdt:0,usd:0,czk:0},
     profits:     {eur:0,huf:0,usdt:0,usd:0,czk:0},
     agentProfit: {},
-    rounds:      {eur:null,huf:null,usdt:null,usd:null,czk:null}, // legacy, kept for compat
-    closedRounds:[],   // legacy
-    rounds2:     [],   // new: [{id, name, openedDate, openedTime, snapshotUsdt, rates, status:'open'}, ...]
-    openRound2:  null, // id of currently open round, or null
+    rounds:      {eur:null,huf:null,usdt:null,usd:null,czk:null},
+    closedRounds:[],
+    rounds2:     [],
+    openRound2:  null,
     deals:       [],
     cashflows:   []
   };
@@ -495,7 +495,7 @@ function load() {
     if (!exState.closedRounds) exState.closedRounds = [];
     if (!exState.rounds2)      exState.rounds2      = [];
     if (exState.openRound2 === undefined) exState.openRound2 = null;
-    if (!exState.capital)      exState.capital      = {eur:3000,huf:2000000,usdt:3000,usd:0,czk:0};
+    if (!exState.capital)      exState.capital      = {eur:0,huf:0,usdt:0,usd:0,czk:0};
     if (!exState.deals)        exState.deals        = [];
     if (!exState.cashflows)    exState.cashflows    = [];
     if (!exState.balances)     exState.balances     = {eur:0,huf:0,usdt:0,usd:0,czk:0};
