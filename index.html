@@ -201,11 +201,6 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
 <div class="page active" id="page-exchange">
 
   <div class="settings-row" style="padding-top:16px">
-    <div class="si"><label>EUR капитал</label><input type="number" id="cap-eur" value="3000"></div>
-    <div class="si"><label>HUF капитал</label><input type="number" id="cap-huf" value="2000000"></div>
-    <div class="si"><label>USDT капитал</label><input type="number" id="cap-usdt" value="3000"></div>
-    <div class="si"><label>USD капитал</label><input type="number" id="cap-usd" value="0"></div>
-    <div class="si"><label>CZK капитал</label><input type="number" id="cap-czk" value="0"></div>
     <div class="si" style="cursor:pointer;" id="btn-agent-cfg"><label style="cursor:pointer;">Агенты</label><span id="agents-summary" style="color:var(--green);font-size:12px;font-weight:700;">⚙</span></div>
   </div>
 
@@ -1261,10 +1256,7 @@ document.getElementById('ex-rate').addEventListener('input',     function(){ cal
 document.getElementById('ex-spread').addEventListener('input',   function(){ calcHint('spread'); });
 updateRateLabel();
 
-CURS.forEach(function(c) {
-  document.getElementById('cap-'+c).addEventListener('input', syncCapital);
-});
-document.getElementById('btn-agent-cfg').addEventListener('click', openAgentModal);
+document.getElementById('btn-agent-cfg').addEventListener('click', function(){ openAgentModal(); });
 
 function addExDeal() {
   try {
