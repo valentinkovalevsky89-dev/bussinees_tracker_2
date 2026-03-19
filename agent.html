@@ -343,8 +343,19 @@ document.getElementById('get-cur').addEventListener('change',  function(){ updat
 document.getElementById('btn-fetch-rate').addEventListener('click', fetchRate);
 
 // ================================================================
-// JSONP HELPER
+// SEND DATA — fire and forget via no-cors fetch
 // ================================================================
+function sendData(url, successMsg) {
+  fetch(url, {mode: 'no-cors'})
+    .then(function() {
+      showToast(successMsg || '✓ Отправлено');
+    })
+    .catch(function(e) {
+      showToast('Ошибка: ' + e.message, true);
+    });
+}
+
+// JSONP helper — kept for roundStatus only
 function jsonpCall(url, callback) {
   var cbName = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*9999);
   var script = document.createElement('script');
@@ -429,16 +440,14 @@ document.getElementById('btn-confirm').addEventListener('click', function() {
     + '&date='       + encodeURIComponent(d.date)
     + '&time='       + encodeURIComponent(d.time);
 
-  jsonpCall(url, function(err, data) {
-    btn.innerHTML = '✓ Отправить'; btn.disabled = false;
-    if (err || !data.ok) { showToast('Ошибка: ' + (err ? err.message : data.error), true); return; }
-    document.getElementById('give-amt').value = '';
-    document.getElementById('get-amt').value  = '';
-    document.getElementById('note').value     = '';
-    document.getElementById('confirm-modal').classList.add('hidden');
-    pendingDeal = null;
-    showToast('✓ Сделка отправлена!');
-  });
+  document.getElementById('give-amt').value = '';
+  document.getElementById('get-amt').value  = '';
+  document.getElementById('note').value     = '';
+  document.getElementById('confirm-modal').classList.add('hidden');
+  pendingDeal = null;
+  btn.innerHTML = '✓ Отправить'; btn.disabled = false;
+
+  sendData(url, '✓ Сделка отправлена!');
 });
 
 // ================================================================
@@ -461,13 +470,10 @@ function sendCashflow(type) {
     + '&time='    + encodeURIComponent(nowTime())
     + '&agent='   + encodeURIComponent(getSelectedAgent());
 
-  jsonpCall(url, function(err, data) {
-    if (err || !data.ok) { showToast('Ошибка: ' + (err ? err.message : data.error), true); return; }
-    document.getElementById('cf-amt').value  = '';
-    document.getElementById('cf-note').value = '';
-    var label = type === 'in' ? 'Пополнение' : 'Вывод';
-    showToast('✓ ' + label + ' записан');
-  });
+  document.getElementById('cf-amt').value  = '';
+  document.getElementById('cf-note').value = '';
+  var label = type === 'in' ? 'Пополнение' : 'Вывод';
+  sendData(url, '✓ ' + label + ' записан');
 }
 
 if (document.getElementById('btn-cf-in')) {
@@ -515,15 +521,9 @@ if (document.getElementById('btn-close-round')) {
     btn.disabled = true;
 
     var url = GS_URL + '?action=closeRound&time=' + encodeURIComponent(nowTime()) + '&date=' + encodeURIComponent(today());
-    jsonpCall(url, function(err, data) {
-      if (err || !data.ok) {
-        btn.innerHTML = '⏹ Закрыть раунд'; btn.disabled = false;
-        showToast('Ошибка: ' + (err ? err.message : data.error), true);
-        return;
-      }
-      updateRoundUI(false, '');
-      showToast('✓ Раунд закрыт');
-    });
+    updateRoundUI(false, '');
+    showToast('✓ Раунд закрыт');
+    sendData(url);
   });
 }
 
