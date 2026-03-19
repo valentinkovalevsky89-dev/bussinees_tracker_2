@@ -129,6 +129,12 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
     <div class="card">
       <div class="card-title">Новая сделка</div>
 
+      <!-- AGENT SELECTOR -->
+      <div class="field" style="margin-bottom:14px;">
+        <label>Агент</label>
+        <select id="agent-select" style="font-size:14px;font-weight:700;color:var(--green);"></select>
+      </div>
+
       <div class="row">
         <div class="field">
           <label>Отдаю</label>
@@ -223,7 +229,7 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
 // CONFIG — read from URL params
 // ================================================================
 var params  = new URLSearchParams(window.location.search);
-var AGENT   = params.get('agent') || '';
+var AGENTS_PARAM = params.get('agents') || params.get('agent') || '';
 var GS_URL  = params.get('gs') || localStorage.getItem('gs_url') || '';
 
 var CURS = ['usdt','eur','huf','usd','czk'];
@@ -232,11 +238,39 @@ var CLR  = {eur:'var(--eur)',huf:'var(--huf)',usdt:'var(--usdt)',usd:'var(--usd)
 
 if (GS_URL) localStorage.setItem('gs_url', GS_URL);
 
-if (!AGENT || !GS_URL) {
+// Parse agents list
+var AGENTS_LIST = AGENTS_PARAM
+  ? AGENTS_PARAM.split(',').map(function(a){ return a.trim(); }).filter(Boolean)
+  : [];
+
+function getSelectedAgent() {
+  var sel = document.getElementById('agent-select');
+  return sel ? sel.value : (AGENTS_LIST[0] || '');
+}
+
+function populateAgentSelect() {
+  var sel = document.getElementById('agent-select');
+  sel.innerHTML = '';
+  AGENTS_LIST.forEach(function(name) {
+    var opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+}
+
+if (!AGENTS_LIST.length || !GS_URL) {
   document.getElementById('no-config-screen').classList.remove('hidden');
   document.getElementById('main-screen').style.display = 'none';
 } else {
-  document.getElementById('agent-name-badge').textContent = AGENT;
+  // Show first agent name in header badge
+  var badge = document.getElementById('agent-name-badge');
+  if (AGENTS_LIST.length === 1) {
+    badge.textContent = AGENTS_LIST[0];
+  } else {
+    badge.textContent = AGENTS_LIST.length + ' агентов';
+  }
+  populateAgentSelect();
   fetchRate();
 }
 
@@ -363,7 +397,7 @@ document.getElementById('btn-submit').addEventListener('click', function() {
   var pct    = mv > 0 ? ((profit/mv)*100).toFixed(2) : '0.00';
 
   pendingDeal = {
-    agent: AGENT,
+    agent: getSelectedAgent(),
     giveCur: gc, giveAmount: ga,
     getCur:  rc, getAmount:  ra,
     rate: rt, profit: profit, pct: pct,
@@ -375,7 +409,7 @@ document.getElementById('btn-submit').addEventListener('click', function() {
   document.getElementById('c-give').innerHTML   = '<span class="tag t-' + gc + '">' + fmt(ga,gc) + '</span>';
   document.getElementById('c-get').innerHTML    = '<span class="tag t-' + rc + '">' + fmt(ra,rc) + '</span>';
   document.getElementById('c-rate').textContent = '1 ' + SYM[gc] + ' = ' + rt + ' ' + SYM[rc];
-  document.getElementById('c-agent').textContent = AGENT;
+  document.getElementById('c-agent').textContent = getSelectedAgent();
 
   var sign = profit >= 0 ? '+' : '';
   var col  = profit >= 0 ? 'var(--green)' : 'var(--red)';
