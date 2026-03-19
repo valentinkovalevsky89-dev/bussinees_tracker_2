@@ -519,7 +519,15 @@ function fmt(v,c) {
   return parseFloat(v).toFixed(2)+' '+SYM[c];
 }
 function fmtU(v) { return parseFloat(v).toFixed(2)+' USDT'; }
-function cap(c)  { return exState.capital[c] || 0; }
+function cap(c) {
+  var total = 0;
+  (exState.cashflows || []).forEach(function(cf) {
+    if (cf.cur !== c) return;
+    if (cf.type === 'in')  total += cf.amt;
+    if (cf.type === 'out') total -= cf.amt;
+  });
+  return total;
+}
 
 // Convert full balance snapshot to USDT using provided rates object {eur:X, huf:X, usd:X, czk:X}
 // rates = how many USDT per 1 unit of currency
@@ -1389,15 +1397,8 @@ function rebuildRounds() {
     exState.agentProfit['owner'][d.getCur] += d.profit * (1 - agentFrac);
   });
 
-  // Apply cashflows to capital
-  var cfCap = {eur:0,huf:0,usdt:0,usd:0,czk:0};
-  (exState.cashflows||[]).forEach(function(cf) {
-    if (cf.type === 'in')  cfCap[cf.cur] += cf.amt;
-    if (cf.type === 'out') cfCap[cf.cur] -= cf.amt;
-  });
-
   CURS.forEach(function(c) {
-    exState.balances[c] = cap(c) + cfCap[c] + tempBal[c];
+    exState.balances[c] = cap(c) + tempBal[c];
   });
 }
 
