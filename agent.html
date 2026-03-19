@@ -363,7 +363,7 @@ document.getElementById('btn-submit').addEventListener('click', function() {
   var pct    = mv > 0 ? ((profit/mv)*100).toFixed(2) : '0.00';
 
   pendingDeal = {
-    agent: AGENT, token: TOKEN,
+    agent: AGENT,
     giveCur: gc, giveAmount: ga,
     getCur:  rc, getAmount:  ra,
     rate: rt, profit: profit, pct: pct,
